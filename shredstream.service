@@ -1,0 +1,20 @@
+[Unit]
+Description=ShredStream
+After=network.target syslog.target
+StartLimitIntervalSec=0
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+LimitNOFILE=1000000
+Environment="RUST_LOG=info"
+WorkingDirectory=/root/shredstream-proxy
+ExecStart=/root/.cargo/bin/cargo run --release --bin jito-shredstream-proxy -- shredstream \
+    --block-engine-url https://ny.mainnet.block-engine.jito.wtf \
+    --auth-keypair /root/solana/validator-keypair.json \
+    --desired-regions ny \
+    --dest-ip-ports 127.0.0.1:8001,10.0.0.1:8001
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s QUIT $MAINPID
+[Install]
+WantedBy=multi-user.target
